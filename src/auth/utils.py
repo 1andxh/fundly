@@ -2,26 +2,37 @@ import hashlib
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
+from passlib.context import CryptContext
 
-import bcrypt
+# import bcrypt
 import jwt
-
 from src.config import config
+
 
 jwt_secret_key = config.JWT_SECRET
 jwt_algorithm = config.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRY = 3600
 
-
-def hash_password(password: str) -> str:
-    digest = hashlib.sha256(password.encode("utf-8")).digest()
-    hashed = bcrypt.hashpw(digest, bcrypt.gensalt())
-    return hashed.decode("utf-8")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    digest = hashlib.sha256(password.encode("utf-8")).digest()
-    return bcrypt.checkpw(digest, hashed.encode("utf-8"))
+    return pwd_context.verify(password, hashed)
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+# hashlib
+# def hash_password(password: str) -> str:
+#     digest = hashlib.sha256(password.encode("utf-8")).digest()
+#     hashed = bcrypt.hashpw(digest, bcrypt.gensalt())
+#     return hashed.decode("utf-8")
+
+# def verify_password(password: str, hashed: str) -> bool:
+#     digest = hashlib.sha256(password.encode("utf-8")).digest()
+#     return bcrypt.checkpw(digest, hashed.encode("utf-8"))
 
 
 def create_access_token(
