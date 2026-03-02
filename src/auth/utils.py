@@ -16,6 +16,7 @@ ACCESS_TOKEN_EXPIRY = 3600
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+# bcrypt
 def verify_password(password: str, hashed: str) -> bool:
     return pwd_context.verify(password, hashed)
 
