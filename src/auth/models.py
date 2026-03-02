@@ -19,10 +19,8 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    email: Mapped[str] = mapped_column(String(320), nullable=False)
-    __table_args__ = (
-        Index("uq_users_email_lower", func.lower(email), unique=True),
-    )
+    email: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    __table_args__ = (Index("uq_users_email_lower", func.lower(email), unique=True),)
 
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
