@@ -1,6 +1,11 @@
 import uuid
 from datetime import datetime
-from pydantic import EmailStr, BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+
+def _normalize_email(value: str) -> str:
+    return value.strip().lower()
 
 
 class UserCreateModel(BaseModel):
@@ -11,10 +16,20 @@ class UserCreateModel(BaseModel):
     full_name: str = Field(min_length=2, max_length=100)
     phone_number: str | None = None
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return _normalize_email(value)
+
 
 class UserLoginModel(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return _normalize_email(value)
 
 
 class UserResponseModel(BaseModel):
