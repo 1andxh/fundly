@@ -1,6 +1,13 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.auth.routes import auth_router
+from .exception_handler import (
+    fundly_exception_handler,
+    request_validation_handler,
+    general_exception_handler,
+    RequestValidationError,
+    FundlyException,
+)
 
 version = "v1"
 
@@ -20,5 +27,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# middleware
 
+
+# exception_handlers
+app.add_exception_handler(FundlyException, fundly_exception_handler)
+
+# routers
 app.include_router(auth_router, prefix=f"/api/{version}/auth", tags=["authentication"])
