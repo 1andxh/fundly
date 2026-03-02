@@ -1,6 +1,6 @@
-# Crowdfund API
+# Fundly (backend)
 
-Crowdfund API is a backend service for a crowdfunding platform. I am building it as a hands-on project to level up as a backend engineer, with focus on API design, authentication, database modeling, async workflows, and production-style backend practices.
+Fundly is a backend service for a crowdfunding platform. I am building it as a hands-on project to level up as a backend engineer, with focus on API design, authentication, database modeling, async workflows, and production-style backend practices.
 
 ## Setup
 
