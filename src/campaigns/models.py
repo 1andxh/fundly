@@ -29,7 +29,7 @@ class Campaign(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
     )
     creator_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -52,11 +52,13 @@ class Campaign(Base):
     ended_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    # relationship
+
     creator: Mapped["User"] = relationship("User", back_populates="campaigns")
     contributions: Mapped[list["Contribution"]] = relationship(
-        "Contribution", back_populates="campaign"
+        "Contribution",
+        back_populates="campaign",
+        passive_deletes=True,
     )
     payout: Mapped["Payout"] = relationship(
-        "Payout", back_populates="campaign", uselist=False  # One-to-one
+        "Payout", back_populates="campaign", uselist=False
     )
