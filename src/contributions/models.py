@@ -1,22 +1,18 @@
-from sqlalchemy import (
-    String,
-    DateTime,
-    ForeignKey,
-    Enum as SAEnum,
-    Numeric,
-)
-from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-import uuid
 import enum
+import uuid
 from datetime import datetime
-from src.db.base import Base
 from typing import TYPE_CHECKING
 
+from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Numeric, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
+from src.db.base import Base
+
 if TYPE_CHECKING:
-    from src.campaigns.models import Campaign
     from src.auth.models import User
+    from src.campaigns.models import Campaign
 
 
 class PaymentStatus(str, enum.Enum):
@@ -33,21 +29,18 @@ class Contribution(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     campaign_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("campaigns.id"), nullable=False
+        ForeignKey("campaigns.id", ondelete="RESTRICT"), nullable=False
     )
     user_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    # guest contributor info
+
     contributor_email: Mapped[str] = mapped_column(
         String(255), index=True, nullable=False
     )
     contributor_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    # payment details
-    amount: Mapped[float] = mapped_column(
-        Numeric(10, 2),
-        nullable=False,
-    )
+
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     payment_status: Mapped[PaymentStatus] = mapped_column(
         SAEnum(PaymentStatus, name="payment_status_enum", native_enum=False),
         default=PaymentStatus.PENDING,
@@ -57,7 +50,7 @@ class Contribution(Base):
         String, unique=True, index=True, nullable=True
     )
     paystack_access_code: Mapped[str] = mapped_column(String, nullable=True)
-    # timestamps
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -68,8 +61,9 @@ class Contribution(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    # relationships
     campaign: Mapped["Campaign"] = relationship(
         "Campaign", back_populates="contributions"
     )
-    user: Mapped["User | None"] = relationship("User", back_populates="contributions")
+    user: Mapped["User | None"] = relationship(
+        "User", back_populates="contributions"
+    )
