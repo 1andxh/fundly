@@ -32,6 +32,8 @@ app = FastAPI(
 
 # exception_handlers
 app.add_exception_handler(FundlyException, fundly_exception_handler)
+app.add_exception_handler(RequestValidationError, request_validation_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 # routers
-app.include_router(auth_router, prefix=f"/api/{version}/auth", tags=["authentication"])
+app.include_router(auth_router, prefix=f"/api/auth", tags=["authentication"])
