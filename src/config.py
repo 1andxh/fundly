@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 
 
 class CustomBaseSettings(BaseSettings):
@@ -19,7 +20,7 @@ class Config(CustomBaseSettings):
 
     # mail config
     MAIL_USERNAME: str
-    MAIL_PASSWORD: str
+    MAIL_PASSWORD: SecretStr
     MAIL_PORT: int
     MAIL_SERVER: str
     MAIL_FROM: str
