@@ -1,0 +1,18 @@
+from src.config import config
+from itsdangerous import URLSafeTimedSerializer
+
+
+class MailService:
+    def __init__(self) -> None:
+        self.email_serializer = URLSafeTimedSerializer(
+            secret_key=config.EMAIL_SECRET, salt="email-verification"
+        )
+        self.password_reset_serializer = URLSafeTimedSerializer(
+            secret_key=config.PAYSTACK_SECRET_KEY, salt="password-reset"
+        )
+
+    def create_email_verification_token(self, data: dict):
+        return self.email_serializer.dumps(data)
+
+    def create_password_reset_token(self, data: dict):
+        return self.password_reset_serializer.dumps(data)

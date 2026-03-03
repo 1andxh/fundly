@@ -29,6 +29,8 @@ class Config(CustomBaseSettings):
     MAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
+    EMAIL_SECRET: str
+    PASSWORD_RESET_SECRET: str
 
 
 config = Config()  # type: ignore
