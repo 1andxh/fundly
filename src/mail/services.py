@@ -8,7 +8,7 @@ class MailService:
             secret_key=config.EMAIL_SECRET, salt="email-verification"
         )
         self.password_reset_serializer = URLSafeTimedSerializer(
-            secret_key=config.PAYSTACK_SECRET_KEY, salt="password-reset"
+            secret_key=config.PASSWORD_RESET_SECRET, salt="password-reset"
         )
 
     def create_email_verification_token(self, data: dict):
