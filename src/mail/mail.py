@@ -5,7 +5,7 @@ from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 
 from src.config import config
 
-#  harden token secrets, use env-driven mail config, and improve token decode handling
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_FOLDER = Path(BASE_DIR, "templates")
 
@@ -28,9 +28,9 @@ mail_config = ConnectionConfig(
 mail = FastMail(config=mail_config)
 
 
-def create_message(recipients: list[str], subject: str, body: str) -> MessageSchema:
+def create_message(recipients, subject: str, body: str) -> MessageSchema:
     message = MessageSchema(
-        recipients=recipients,  # todo: fix type issue
+        recipients=recipients,
         subject=subject,
         body=body,
         subtype=MessageType.html,
