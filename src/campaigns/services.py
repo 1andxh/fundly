@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status, Depends
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import uuid
 from .models import Campaign, CampaignStatus
 from src.auth.models import User
-from .schemas import CampaignCreate, CampaignResponse, CampaignList
+from .schemas import CampaignCreate, CampaignResponse
 from typing import Annotated
 from src.auth.dependencies import get_current_active_user
 from sqlalchemy import select, desc
@@ -56,7 +56,7 @@ class CampaignService:
             )
         return campaign
 
-    def _validate_campaign_is_active(self, campaign: Campaign) -> None:
+    async def _validate_campaign_is_active(self, campaign: Campaign) -> None:
         if campaign.status != CampaignStatus.ACTIVE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,8 +87,10 @@ class CampaignService:
 
         return new_campaign
 
-    async def get_campaign(self, campaign_id: uuid.UUID, session: AsyncSession):
-        await self._get_campaign_or_404(campaign_id=campaign_id, session=session)
+    async def get_campaign(
+        self, campaign_id: uuid.UUID, session: AsyncSession
+    ) -> Campaign:
+        return await self._get_campaign_or_404(campaign_id=campaign_id, session=session)
 
     async def list_campaigns(
         self,
@@ -102,7 +104,7 @@ class CampaignService:
 
         if search_query:
             statement = statement.where(Campaign.title.ilike(f"%{search_query}%"))
-        if search_query:
+        if status_filter:
             statement = statement.where(Campaign.status == status_filter)
 
         statement = (
@@ -116,18 +118,35 @@ class CampaignService:
     ) -> list[Campaign]:
         statement = (
             select(Campaign)
-            .where(Campaign.id == current_user.id)
+            .where(Campaign.creator_id == current_user.id)
             .order_by(desc(Campaign.created_at))
         )
         result = await session.execute(statement)
         return list(result.scalars().all())
 
     async def update_campaign(
-        self, campaign_id: uuid.UUID, current_user: User, session: AsyncSession
+        self,
+        campaign_id: uuid.UUID,
+        data: CampaignCreate,
+        current_user: User,
+        session: AsyncSession,
     ) -> Campaign:
-        # statement = select(Campaign).where(Campaign.id == campaign_id, Campaign.creator_id == user.id)
-        # result = await session.execute(statement)
-        campaign = self._get_campaign_or_404(campaign_id=campaign_id, session=session)
-        # await self._validate_campaign_ownership(campaign, user=current_user)
 
-        # return result
+        campaign = await self._get_campaign_or_404(
+            campaign_id=campaign_id, session=session
+        )
+        await self._validate_campaign_ownership(campaign=campaign, user=current_user)
+        await self._validate_campaign_is_active(campaign=campaign)
+        await self._validate_goal_amount(data.goal_amount)
+        await self._validate_deadline(deadline=data.deadline)
+
+        campaign.title = data.title
+        campaign.description = data.description
+        campaign.story = data.story
+        campaign.goal_amount = data.goal_amount
+        campaign.image_url = data.image_url
+        campaign.deadline = data.deadline
+
+        await session.commit()
+        await session.refresh(campaign)
+        return campaign
