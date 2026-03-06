@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import uuid
 from .models import Campaign, CampaignStatus
 from src.auth.models import User
-from .schemas import CampaignCreate, CampaignResponse
+from .schemas import CampaignCreate, CampaignResponse, CampaignUpdate
 from typing import Annotated
 from src.auth.dependencies import get_current_active_user
 from sqlalchemy import select, desc
@@ -127,7 +127,7 @@ class CampaignService:
     async def update_campaign(
         self,
         campaign_id: uuid.UUID,
-        data: CampaignCreate,
+        data: CampaignUpdate,
         current_user: User,
         session: AsyncSession,
     ) -> Campaign:
@@ -137,15 +137,15 @@ class CampaignService:
         )
         await self._validate_campaign_ownership(campaign=campaign, user=current_user)
         await self._validate_campaign_is_active(campaign=campaign)
-        await self._validate_goal_amount(data.goal_amount)
-        await self._validate_deadline(deadline=data.deadline)
 
-        campaign.title = data.title
-        campaign.description = data.description
-        campaign.story = data.story
-        campaign.goal_amount = data.goal_amount
-        campaign.image_url = data.image_url
-        campaign.deadline = data.deadline
+        update_dict = data.model_dump(exclude_unset=True)
+        if "goal_amount" in update_dict:
+            await self._validate_goal_amount(update_dict["goal_amount"])
+        if "deadline" in update_dict:
+            await self._validate_deadline(update_dict["deadline"])
+
+        for k, v in update_dict.items():
+            setattr(campaign, k, v)
 
         await session.commit()
         await session.refresh(campaign)
