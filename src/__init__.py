@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.auth.routes import auth_router
+from src.campaigns.routes import campaign_router
 from .exception_handler import (
     fundly_exception_handler,
     request_validation_handler,
@@ -37,3 +38,4 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 # routers
 app.include_router(auth_router, prefix=f"/api/auth", tags=["authentication"])
+app.include_router(campaign_router, prefix=f"api/campaigns", tags=["Campaigns"])
