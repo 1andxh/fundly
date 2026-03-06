@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.main import get_session
-from .dependencies import get_current_user
+from .dependencies import get_current_active_user
 from .models import User
 from .schemas import Token, UserCreateModel, UserLoginModel, UserResponseModel
 from .services import UserService
@@ -70,5 +70,5 @@ async def refresh_token(
 
 
 @auth_router.get("/me", response_model=UserResponseModel)
-async def me(current_user: User = Depends(get_current_user)):
+async def me(current_user: User = Depends(get_current_active_user)):
     return current_user
