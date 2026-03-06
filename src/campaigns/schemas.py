@@ -55,3 +55,20 @@ class CampaignList(BaseModel):
     status: CampaignStatus
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CampaignUpdate(BaseModel):
+
+    title: str | None = Field(None, min_length=5, max_length=200)
+    description: str | None = Field(None, min_length=10, max_length=500)
+    story: str | None = None
+    goal_amount: float | None = Field(None, gt=0)
+    deadline: datetime | None = None
+    image_url: str | None = None
+
+    @field_validator("deadline")
+    @classmethod
+    def deadline_must_be_future(cls, v: datetime | None) -> datetime | None:
+        if v is not None and v <= datetime.now(timezone.utc):
+            raise ValueError("Deadline must be in the future")
+        return v
