@@ -38,4 +38,4 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 # routers
 app.include_router(auth_router, prefix=f"/api/auth", tags=["authentication"])
-app.include_router(campaign_router, prefix=f"api/campaigns", tags=["Campaigns"])
+app.include_router(campaign_router, prefix=f"/api/campaigns", tags=["Campaigns"])
