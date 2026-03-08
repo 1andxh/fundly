@@ -7,7 +7,12 @@ from datetime import datetime
 
 class ContributionCreate(BaseModel):
     campaign_id: uuid.UUID
-    amount: Decimal = Field(gt=0, description="Contribution amount in GHS")
+    amount: Decimal = Field(
+        gt=0,
+        max_digits=10,
+        decimal_places=2,
+        description="Contribution amount in GHS",
+    )
     contributor_email: EmailStr
     contributor_name: str = Field(min_length=2, max_length=100)
 
