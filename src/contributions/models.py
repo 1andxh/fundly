@@ -1,5 +1,6 @@
 import enum
 import uuid
+from decimal import Decimal
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -40,7 +41,7 @@ class Contribution(Base):
     )
     contributor_name: Mapped[str] = mapped_column(String(128), nullable=False)
 
-    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     payment_status: Mapped[PaymentStatus] = mapped_column(
         SAEnum(PaymentStatus, name="payment_status_enum", native_enum=False),
         default=PaymentStatus.PENDING,
