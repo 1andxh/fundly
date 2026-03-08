@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 import uuid
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from src.campaigns.models import Campaign, CampaignStatus
 from src.contributions.models import Contribution, PaymentStatus
 from src.contributions.schemas import (
@@ -20,10 +20,6 @@ MAX_CONTRIBUTION_AMOUNT = Decimal("1000000.00")
 
 
 class ContributionService:
-    @staticmethod
-    def _normalize_amount(amount: float) -> Decimal:
-        return Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
     async def _get_active_campaign(
         self, campaign_id: uuid.UUID, session: AsyncSession
     ) -> Campaign:
@@ -76,8 +72,7 @@ class ContributionService:
             payment_status=PaymentStatus.PENDING,
         )
         session.add(contribution)
-        await session.commit()
-        await session.refresh(contribution)
+        await session.flush()
 
         return contribution
 
@@ -89,7 +84,7 @@ class ContributionService:
             campaign_id=contribution_data.campaign_id, session=session
         )
 
-        amount = self._normalize_amount(contribution_data.amount)
+        amount = contribution_data.amount
         await self._validate_contribution_amount(amount)
         contribution = await self._create_contribution_record(
             contribution_data.campaign_id,
@@ -98,8 +93,6 @@ class ContributionService:
             amount,
             session,
         )
-        session.add(contribution)
-        await session.flush()
 
         try:
             payment_response = await paystack_client.intialize_transcation(
