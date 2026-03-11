@@ -1,0 +1,51 @@
++ verify paystack signature:
+    Paystack signs webhooks with HMAC-SHA512
+    
+    Args:
+        payload: Raw request body (bytes)
+        signature: x-paystack-signature header value
+        secret: Your Paystack secret key
+    
+    Returns:
+        True if signature is valid, False otherwise
+
++ process charge success
+    Process successful payment webhook from Paystack
+    
+    This is called when Paystack confirms payment was successful.
+    
+    Flow:
+    1. Extract reference from webhook data
+    2. Find contribution by reference
+    3. Verify contribution is PENDING (idempotency check)
+    4. Update contribution to COMPLETED
+    5. Update campaign current_amount
+    6. Send receipt email (future)
+    
+    Args:
+        event_data: Webhook data from Paystack
+        db: Database session
+    
+    Returns:
+        Dict with processing result
+    
+    Raises:
+        HTTPException 404: Contribution not found
+        HTTPException 400: Contribution already processed
+
++ process webhook event
+    Route webhook events to appropriate handlers
+    
+    Paystack sends different event types:
+    - charge.success: Payment successful
+    - charge.failed: Payment failed
+    - transfer.success: Payout successful (future)
+    - refund.processed: Refund completed (future)
+    
+    Args:
+        event_type: Type of webhook event
+        event_data: Event data from Paystack
+        db: Database session
+    
+    Returns:
+        Processing result dict
