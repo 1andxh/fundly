@@ -2,15 +2,16 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime, timezone
 import uuid
 from .models import CampaignStatus
-
-now = datetime.now(timezone.utc)
+from decimal import Decimal
 
 
 class CampaignCreate(BaseModel):
     title: str = Field(min_length=5, max_length=200)
     description: str = Field(min_length=10, max_length=500)
     story: str | None = None
-    goal_amount: float = Field(gt=0, description="Goal amount in GHS")
+    goal_amount: Decimal = Field(
+        gt=0, max_digits=10, decimal_places=2, description="Goal amount in GHS"
+    )
     deadline: datetime
     image_url: str | None = None
 
@@ -20,7 +21,7 @@ class CampaignCreate(BaseModel):
         if v.tzinfo is None:
             v = v.replace(tzinfo=timezone.utc)
 
-        if v <= now:
+        if v <= datetime.now(timezone.utc):
             raise ValueError("Deadline must be in the future")
         return v
 
@@ -31,8 +32,8 @@ class CampaignResponse(BaseModel):
     title: str
     description: str
     story: str | None
-    goal_amount: float
-    current_amount: float
+    goal_amount: Decimal
+    current_amount: Decimal
     image_url: str | None
     deadline: datetime
     status: CampaignStatus
@@ -48,8 +49,8 @@ class CampaignList(BaseModel):
     creator_id: uuid.UUID
     title: str
     description: str
-    goal_amount: float
-    current_amount: float
+    goal_amount: Decimal
+    current_amount: Decimal
     image_url: str | None
     deadline: datetime
     status: CampaignStatus
@@ -60,15 +61,19 @@ class CampaignList(BaseModel):
 class CampaignUpdate(BaseModel):
 
     title: str | None = Field(None, min_length=5, max_length=200)
-    description: str | None = Field(None, min_length=10, max_length=500)
+    description: str | None = None
     story: str | None = None
-    goal_amount: float | None = Field(None, gt=0)
+    goal_amount: Decimal | None = Field(None, gt=0, max_digits=10, decimal_places=2)
     deadline: datetime | None = None
     image_url: str | None = None
 
     @field_validator("deadline")
     @classmethod
     def deadline_must_be_future(cls, v: datetime | None) -> datetime | None:
-        if v is not None and v <= datetime.now(timezone.utc):
+        if v is None:
+            return v
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        if v <= datetime.now(timezone.utc):
             raise ValueError("Deadline must be in the future")
         return v
