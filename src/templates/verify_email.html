@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="color: #1a1a1a; margin-top: 0;">Welcome to Fundly, {{ username }}! </h2>
+
+<p style="color: #4a4a4a; line-height: 1.6; font-size: 16px;">
+    You're one step away from joining our community. Please verify your email address to start exploring projects or launching your own!
+</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ link }}" 
+       style="background-color: #10b981; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">
+       Verify My Email
+    </a>
+</div>
+
+<p style="color: #717171; font-size: 14px; line-height: 1.6;">
+    If the button doesn't work, copy and paste this link:
+    <br>
+    <a href="{{ link }}" style="color: #2563eb; word-break: break-all;">{{ link }}</a>
+</p>
+
+<hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+<p style="color: #9ca3af; font-size: 13px;">
+    Didn't sign up for Fundly? No worries, you can just ignore this.
+</p>
+{% endblock %}
