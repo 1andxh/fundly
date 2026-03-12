@@ -25,17 +25,6 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-# hashlib
-# def hash_password(password: str) -> str:
-#     digest = hashlib.sha256(password.encode("utf-8")).digest()
-#     hashed = bcrypt.hashpw(digest, bcrypt.gensalt())
-#     return hashed.decode("utf-8")
-
-# def verify_password(password: str, hashed: str) -> bool:
-#     digest = hashlib.sha256(password.encode("utf-8")).digest()
-#     return bcrypt.checkpw(digest, hashed.encode("utf-8"))
-
-
 def create_access_token(
     user_data: dict,
     expiry: timedelta = timedelta(seconds=ACCESS_TOKEN_EXPIRY),
