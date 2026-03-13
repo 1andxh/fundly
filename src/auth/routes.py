@@ -62,7 +62,9 @@ async def signup(
 
 
 @auth_router.get("/verify")
-async def verify_user(): ...
+async def verify_user(token: str, session: AsyncSession = Depends(get_session)):
+
+    return await user_service.verify_user(token, session)
 
 
 @auth_router.post("/login", response_model=Token)
