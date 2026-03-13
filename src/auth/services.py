@@ -1,12 +1,12 @@
 from datetime import timedelta
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Response
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import User
-from .schemas import Token, UserCreateModel
+from .schemas import Token, UserCreateModel, UserResponseModel
 from .utils import (
     ACCESS_TOKEN_EXPIRY,
     create_access_token,
@@ -14,8 +14,12 @@ from .utils import (
     hash_password,
     verify_password,
 )
+from src.mail.utils import decode_url_safe_token
+from src.mail.services import MailService
+from fastapi.responses import JSONResponse
 
 REFRESH_TOKEN_EXPIRY_DAYS = 7
+mail_service = MailService()
 
 
 def normalize_email(email: str) -> str:
@@ -23,6 +27,14 @@ def normalize_email(email: str) -> str:
 
 
 class UserService:
+    async def _update_user_is_verified(
+        self, user: User, update_dict: dict, session: AsyncSession
+    ):
+        for k, v in update_dict.items():
+            setattr(user, k, v)
+        await session.flush()
+        return user
+
     async def get_user_by_email(self, email: str, session: AsyncSession) -> User | None:
         normalized_email = normalize_email(email)
         result = await session.execute(
@@ -34,7 +46,9 @@ class UserService:
         user = await self.get_user_by_email(email, session)
         return user is not None
 
-    async def create_user(self, user_data: UserCreateModel, session: AsyncSession) -> User:
+    async def create_user(
+        self, user_data: UserCreateModel, session: AsyncSession
+    ) -> User:
         normalized_email = normalize_email(user_data.email)
 
         if await self.check_user_exists(normalized_email, session):
@@ -150,3 +164,24 @@ class UserService:
                 detail="User not found",
             )
         return user
+
+    async def verify_user(self, token: str, session: AsyncSession):
+        token_data = decode_url_safe_token(token, mail_service.email_serializer)
+        email = token_data.get("email")
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invalid verification token",
+            )
+        user = await self.get_user_by_email(email, session)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+        if user.is_verified:
+            return JSONResponse(
+                content={"message": "Account already verified"},
+                status_code=status.HTTP_200_OK,
+            )
+        await self._update_user_is_verified(user, {"is_verified": True}, session)
+        return JSONResponse(content={"message": "Account succesfully verified"})
