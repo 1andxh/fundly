@@ -1,6 +1,5 @@
 from fastapi import HTTPException, status
-import hmac
-import hashlib
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 from decimal import Decimal
