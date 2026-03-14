@@ -13,17 +13,6 @@ from .exceptions import WebhookError
 logger = logging.getLogger("uvicorn.access")
 
 
-async def verify_paystack_signature(
-    payload: bytes, signature: str, secret: str
-) -> bool:
-    # compute has
-    computed_hash = hmac.new(
-        key=secret.encode("utf-8"), msg=payload, digestmod=hashlib.sha512
-    ).hexdigest()
-    # compare signature from header
-    return hmac.compare_digest(computed_hash, signature)
-
-
 async def process_charge_success(
     event_data: dict,
     session: AsyncSession,
