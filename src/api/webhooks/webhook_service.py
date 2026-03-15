@@ -82,3 +82,13 @@ async def process_charge_success(
         "new_campaign_total": float(new_total),
         "goal_reached": goal_reached,
     }
+
+
+async def process_webhook_event(
+    event_type: str, even_data: dict, session: AsyncSession
+) -> dict:
+    if event_type == "charge.success":
+        return await process_charge_success(event_data=even_data, session=session)
+    else:
+        logger.info(f"Ingored unknown even type: {event_type}")
+        raise WebhookError(f"Event type '{event_type}' not handle")
