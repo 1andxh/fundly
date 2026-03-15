@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.sql import func
 
 from src.db.base import Base
@@ -65,6 +65,24 @@ class Contribution(Base):
     campaign: Mapped["Campaign"] = relationship(
         "Campaign", back_populates="contributions"
     )
-    user: Mapped["User | None"] = relationship(
-        "User", back_populates="contributions"
-    )
+    user: Mapped["User | None"] = relationship("User", back_populates="contributions")
+
+    @validates("payment_status")
+    def validate_status_transitions(self, key, new_status):
+        current_status = self.payment_status
+
+        if (
+            current_status in [PaymentStatus.COMPLETED, PaymentStatus.REFUNDED]
+            and new_status == PaymentStatus.PENDING
+        ):
+            raise ValueError(f"Cannot reset payment status to {new_status}")
+
+        if (
+            current_status == PaymentStatus.REFUNDED
+            and new_status == PaymentStatus.COMPLETED
+        ):
+            raise ValueError(
+                "State Conflict: Cannot mark a REFUNDED contribution as COMPLETED"
+            )
+
+        return new_status
