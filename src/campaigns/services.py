@@ -8,6 +8,7 @@ from .schemas import CampaignCreate, CampaignResponse, CampaignUpdate
 from typing import Annotated
 from src.auth.dependencies import get_current_active_user
 from sqlalchemy import select, desc
+from decimal import Decimal
 
 MAX_GOAL_AMOUNT = 10_000_000
 MAX_CAMPAIGN_DURATION_DAYS = 365
@@ -16,7 +17,7 @@ user = Annotated[User, Depends(get_current_active_user)]
 
 
 class CampaignService:
-    async def _validate_goal_amount(self, amount: float) -> None:
+    async def _validate_goal_amount(self, amount: Decimal) -> None:
         """validate goal amount"""
         if amount > MAX_GOAL_AMOUNT:
             raise HTTPException(
